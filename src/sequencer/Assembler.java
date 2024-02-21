@@ -50,32 +50,48 @@ public class Assembler {
 		boolean assembly = false;
 
         int bestOverlap = -1;
-		int indexOfBestOverlap = -1;
+		int indexOfBestOverlap1 = -1;
+		int indexOfBestOverlap2 = -1;
+		int tieBreaker = 2147483647; //max int
 		
 		for (int i = 0; i < fragments.size(); i++) {
-			for (int j = i + 1; j < fragments.size(); j++) {
-				Fragment fragment1 = fragments.get(i);
-				Fragment fragment2 = fragments.get(j);
+			for (int j = 0; j < fragments.size(); j++) {
+				if (i != j) {
+					Fragment fragment1 = fragments.get(i);
+					Fragment fragment2 = fragments.get(j);
 
-				int overlap = fragment1.calculateOverlap(fragment2);
+					int overlap = fragment1.calculateOverlap(fragment2);
 
-				if (overlap > bestOverlap && overlap >= 1) {
-					bestOverlap = overlap;
-					indexOfBestOverlap = i;
+					if (overlap > bestOverlap || (overlap == bestOverlap) && fragments.get(j).length() < tieBreaker) {
+						bestOverlap = overlap;
+						indexOfBestOverlap1 = i;
+						indexOfBestOverlap2 = j;
+						tieBreaker = fragments.get(j).length();
+					}
 				}
 			}
 		}
 
-		if (indexOfBestOverlap != -1) {
-			Fragment fragment1 = fragments.get(indexOfBestOverlap);
-            Fragment fragment2 = fragments.get(indexOfBestOverlap + 1);
+		if (bestOverlap < 1) {
+			return false;
+		} else {
+			Fragment fragment1 = fragments.get(indexOfBestOverlap1);
+            Fragment fragment2 = fragments.get(indexOfBestOverlap2);
 
-			Fragment mergedFragment = fragment2.mergedWith(fragment1);
+			Fragment mergedFragment = fragment1.mergedWith(fragment2);
 
-			fragments.remove(indexOfBestOverlap);
-			fragments.remove(indexOfBestOverlap);
-
-			fragments.add(indexOfBestOverlap, mergedFragment);
+			if (!fragments.isEmpty()) {
+				if (indexOfBestOverlap1 > indexOfBestOverlap2) {
+					fragments.remove(indexOfBestOverlap1);
+					fragments.remove(indexOfBestOverlap2);
+				} else {
+					fragments.remove(indexOfBestOverlap2);
+					fragments.remove(indexOfBestOverlap1);
+				}
+			} else {
+				// Handle the case when fragments is empty
+				fragments.add(mergedFragment);
+			}
 
 			assembly = true;
 		}
